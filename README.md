@@ -4,7 +4,7 @@ Aplikasi Sistem Informasi Manajemen Persediaan dan Point of Sale (POS) Toko Semb
 
 ---
 
-## 1. Ringkasan Fitur yang Telah Selesai
+1. Ringkasan Fitur yang Telah Selesai
 
 1. **Autentikasi & Otorisasi RBAC (Role-Based Access Control):**
    - Hak Akses **Administrator / Pemilik Toko**: Kendali penuh atas master barang, kategori, pemasok, transaksi, pembatalan/retur, stok opname, pengguna, dan konfigurasi toko.
@@ -70,7 +70,7 @@ Aplikasi Sistem Informasi Manajemen Persediaan dan Point of Sale (POS) Toko Semb
 
 ---
 
-## 2. Struktur Database Relasional
+2. Struktur Database Relasional
 
 Database dirancang dengan integritas relasional tinggi:
 
@@ -88,7 +88,7 @@ Database dirancang dengan integritas relasional tinggi:
 
 ---
 
-## 3. Akun Demo untuk Pengujian & Sidang
+3. Akun Demo untuk Pengujian & Sidang
 
 | Peran (Role) | Username | Password | Deskripsi Wewenang |
 | :--- | :--- | :--- | :--- |
@@ -99,7 +99,7 @@ Database dirancang dengan integritas relasional tinggi:
 
 ---
 
-## 4. Hasil Pengujian Aktual (16 Skenario Terverifikasi)
+4. Hasil Pengujian Aktual (16 Skenario Terverifikasi)
 
 Seluruh 16 skenario pengujian telah diuji dan diverifikasi secara otomatis:
 
@@ -122,22 +122,8 @@ Seluruh 16 skenario pengujian telah diuji dan diverifikasi secara otomatis:
 
 ---
 
-## 5. Cara Menjalankan Aplikasi Langkah demi Langkah
 
-```bash
-# 1. Pastikan dependensi Node.js terpasang
-npm install
-
-# 2. Jalankan server aplikasi full-stack (Express + Vite)
-npm run dev
-
-# 3. Buka peramban pada URL
-http://localhost:3000
-```
-
----
-
-## 6. Keterbatasan & Saran Pengembangan Selanjutnya
+5. Keterbatasan & Saran Pengembangan Selanjutnya
 
 - **Keterbatasan:**
   - Koneksi printer thermal saat ini memanfaatkan dialog cetak bawaan peramban (*browser print dialog*); belum terhubung langsung via serial/USB ESC/POS native driver.
