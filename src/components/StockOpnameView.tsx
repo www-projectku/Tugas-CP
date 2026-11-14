@@ -149,7 +149,7 @@ export const StockOpnameView: React.FC<StockOpnameViewProps> = ({
               >
                 {activeProducts.map((p) => (
                   <option key={p.id} value={p.id}>
-                    [{p.sku}] {p.name} (Tercatat: {p.current_stock} {p.unit})
+                    [{p.sku}] {p.name} (Tercatat: {formatStock(p.current_stock, p.unit)})
                   </option>
                 ))}
               </select>
@@ -318,14 +318,14 @@ export const StockOpnameView: React.FC<StockOpnameViewProps> = ({
                         <div className="text-[10px] font-mono text-slate-400">{adj.product_sku}</div>
                       </td>
                       <td className="py-3 px-2 text-right font-mono text-slate-600">
-                        {adj.recorded_stock}
+                        {formatStock(adj.recorded_stock)}
                       </td>
                       <td className="py-3 px-2 text-right font-mono font-bold text-slate-900">
-                        {adj.physical_stock}
+                        {formatStock(adj.physical_stock)}
                       </td>
                       <td className="py-3 px-2 text-right font-mono font-bold">
                         <span className={adj.difference >= 0 ? 'text-blue-700' : 'text-amber-700'}>
-                          {adj.difference > 0 ? `+${adj.difference}` : adj.difference}
+                          {adj.difference > 0 ? `+${formatStock(adj.difference)}` : formatStock(adj.difference)}
                         </span>
                       </td>
                       <td className="py-3 px-3 max-w-[200px]">
