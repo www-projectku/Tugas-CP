@@ -564,7 +564,7 @@ export const StockInView: React.FC<StockInViewProps> = ({
                         <div className="font-medium text-slate-900">{it.product_name}</div>
                         <div className="text-[10px] font-mono text-slate-400">{it.product_sku}</div>
                       </td>
-                      <td className="py-2 px-2 text-right font-mono">{it.quantity} {it.unit}</td>
+                      <td className="py-2 px-2 text-right font-mono">{formatStock(it.quantity, it.unit)}</td>
                       <td className="py-2 px-2 text-right font-mono">{formatRupiah(it.purchase_price)}</td>
                       <td className="py-2 px-3 text-right font-mono font-bold text-slate-900">
                         {formatRupiah(it.subtotal)}
