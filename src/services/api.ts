@@ -302,7 +302,7 @@ async function fetchAllFromSupabase() {
     supabase.from('categories').select('*').order('name'),
     supabase.from('suppliers').select('*').order('name'),
     supabase.from('stock_in_transactions').select('*').order('created_at', { ascending: false }),
-    supabase.from('stock_in_details').select('*'),
+    supabase.from('v_barang_masuk').select('*'),
     supabase.from('sales_transactions').select('*').order('created_at', { ascending: false }),
     supabase.from('sales_details').select('*'),
     supabase.from('stock_movements').select('*').order('created_at', { ascending: false }),
@@ -1026,7 +1026,7 @@ export const api = {
 
     const [txRes, detRes, supRes] = await Promise.all([
       query,
-      supabase.from('stock_in_details').select('*'),
+      supabase.from('v_barang_masuk').select('*'),
       supabase.from('suppliers').select('id,name'),
     ]);
     if (txRes.error) {
@@ -1807,7 +1807,7 @@ export const api = {
 
     const [txRes, detRes, supRes] = await Promise.all([
       query,
-      supabase.from('stock_in_details').select('*'),
+      supabase.from('v_barang_masuk').select('*'),
       supabase.from('suppliers').select('id,name'),
     ]);
     if (txRes.error) {
