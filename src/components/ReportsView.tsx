@@ -476,7 +476,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ categories, settings, 
                         <td className="py-2.5 px-2 text-right font-mono font-bold text-slate-800">
                           {formatStock(it.current_stock, it.unit)}
                         </td>
-                        <td className="py-2.5 px-2 text-right font-mono text-slate-500">{it.min_stock}</td>
+                        <td className="py-2.5 px-2 text-right font-mono text-slate-500">{formatStock(it.min_stock, it.unit)}</td>
                         <td className="py-2.5 px-3 text-right font-mono text-slate-600">{formatRupiah(it.purchase_price)}</td>
                         <td className="py-2.5 px-3 text-right font-mono text-slate-900">{formatRupiah(it.selling_price)}</td>
                         <td className="py-2.5 px-3 text-right font-mono font-bold text-blue-700">{formatRupiah(it.valuation)}</td>
@@ -514,7 +514,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ categories, settings, 
                         <td className="py-2.5 px-3 text-slate-500">{formatDateIndo(it.transaction_date)}</td>
                         <td className="py-2.5 px-3 font-medium text-slate-800">{it.supplier_name}</td>
                         <td className="py-2.5 px-3 font-semibold text-slate-900">{it.name}</td>
-                        <td className="py-2.5 px-2 text-right font-mono text-slate-800">{it.quantity} {it.unit}</td>
+                        <td className="py-2.5 px-2 text-right font-mono text-slate-800">{formatStock(it.quantity, it.unit)}</td>
                         <td className="py-2.5 px-3 text-right font-mono text-slate-600">{formatRupiah(it.purchase_price)}</td>
                         <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-900">{formatRupiah(it.subtotal)}</td>
                       </tr>
@@ -581,8 +581,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ categories, settings, 
                           {formatStock(it.current_stock, it.unit)}
                         </td>
                         <td className="py-2.5 px-2 text-right font-mono text-slate-500">{it.min_stock}</td>
-                        <td className="py-2.5 px-2 text-right font-mono font-bold text-red-600">-{it.deficit}</td>
-                        <td className="py-2.5 px-3 text-right font-mono font-bold text-blue-700">+{it.recommended_order} {it.unit}</td>
+                        <td className="py-2.5 px-2 text-right font-mono font-bold text-red-600">-{formatStock(it.deficit, it.unit)}</td>
+                        <td className="py-2.5 px-3 text-right font-mono font-bold text-blue-700">+{formatStock(it.recommended_order, it.unit)}</td>
                         <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-900">{formatRupiah(it.estimated_cost)}</td>
                         <td className="py-2.5 px-3 text-center">
                           <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
