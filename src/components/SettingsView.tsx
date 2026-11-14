@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { StoreSettings } from '../types/index.js';
 import { StoreLogo } from './StoreLogo.js';
-import { api, SUPABASE_RLS_AND_SEED_SQL, SupabaseTableCounts } from '../services/api.js';
+import { api, SupabaseTableCounts } from '../services/api.js';
 import {
   Save,
   CheckCircle2,
@@ -14,9 +14,7 @@ import {
   RotateCcw,
   Info,
   Trash2,
-  Database,
-  Copy,
-  RefreshCw,
+  Database,  RefreshCw,
 } from 'lucide-react';
 
 interface SettingsViewProps {
@@ -55,9 +53,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [dbStatus, setDbStatus] = useState<SupabaseTableCounts | null>(null);
   const [dbLoading, setDbLoading] = useState(false);
   const [syncingDb, setSyncingDb] = useState(false);
-  const [dbFeedback, setDbFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [copiedSql, setCopiedSql] = useState(false);
-
+  const [dbFeedback, setDbFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadDbStatus = async () => {
@@ -88,17 +84,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     } finally {
       setSyncingDb(false);
     }
-  };
-
-  const handleCopySql = async () => {
-    try {
-      await navigator.clipboard.writeText(SUPABASE_RLS_AND_SEED_SQL);
-      setCopiedSql(true);
-      setTimeout(() => setCopiedSql(false), 3000);
-    } catch {}
-  };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  };  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -492,48 +478,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 <p className="text-[11px] text-slate-500">store_settings</p>
                 <p className="text-sm font-bold text-slate-900 mt-0.5 font-mono">{dbStatus.store_settings} baris</p>
               </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-600">
-              <span>
-                Akses Tulis RLS:{' '}
-                <strong className={dbStatus.rlsWriteAllowed ? 'text-emerald-700' : 'text-amber-700'}>
-                  {dbStatus.rlsWriteAllowed === null
-                    ? 'Belum diuji'
-                    : dbStatus.rlsWriteAllowed
-                    ? 'Aktif (Baca & Tulis Diizinkan)'
-                    : 'Dibatasi (Perlu SQL Policy)'}
-                </strong>
-              </span>
-              <span>•</span>
-              <span>
-                Produk tanpa mutasi saldo awal:{' '}
-                <strong className={dbStatus.unsyncedProductsCount === 0 ? 'text-emerald-700' : 'text-amber-700'}>
-                  {dbStatus.unsyncedProductsCount} barang
-                </strong>
-              </span>
-            </div>
-          </div>
-        )}
-
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3.5 space-y-2">
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-xs font-semibold text-slate-800">
-              Skrip SQL Kebijakan RLS & Publikasi Realtime (jalankan di Supabase SQL Editor)
-            </p>
-            <button
-              type="button"
-              onClick={handleCopySql}
-              className="px-2.5 py-1 text-[11px] font-semibold bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-md flex items-center gap-1 cursor-pointer"
-            >
-              <Copy className="w-3 h-3" />
-              <span>{copiedSql ? 'Tersalin!' : 'Salin SQL'}</span>
-            </button>
-          </div>
-          <pre className="text-[11px] font-mono bg-slate-900 text-slate-100 p-3 rounded-lg overflow-x-auto leading-relaxed">
-            {SUPABASE_RLS_AND_SEED_SQL}
-          </pre>
-        </div>
-      </div>
+            </div>          </div>
+        )}      </div>
     </div>
   );
 };
