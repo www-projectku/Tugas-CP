@@ -304,7 +304,7 @@ async function fetchAllFromSupabase() {
     supabase.from('stock_in_transactions').select('*').order('created_at', { ascending: false }),
     supabase.from('v_barang_masuk').select('*'),
     supabase.from('sales_transactions').select('*').order('created_at', { ascending: false }),
-    supabase.from('sales_details').select('*'),
+    supabase.from('v_barang_keluar').select('*'),
     supabase.from('stock_movements').select('*').order('created_at', { ascending: false }),
     supabase.from('stock_adjustments').select('*').order('created_at', { ascending: false }),
     supabase.from('store_settings').select('*').limit(1),
@@ -1367,7 +1367,7 @@ export const api = {
   getSalesList: async () => {
     const [txRes, detRes] = await Promise.all([
       supabase.from('sales_transactions').select('*').order('created_at', { ascending: false }),
-      supabase.from('sales_details').select('*'),
+      supabase.from('v_barang_keluar').select('*'),
     ]);
     if (txRes.error) {
       throw new Error(formatSupabaseError(txRes.error, 'Gagal memuat data penjualan.'));
@@ -1868,7 +1868,7 @@ export const api = {
     if (params?.start_date) query = query.gte('transaction_date', params.start_date);
     if (params?.end_date) query = query.lte('transaction_date', params.end_date);
 
-    const [txRes, detRes] = await Promise.all([query, supabase.from('sales_details').select('*')]);
+    const [txRes, detRes] = await Promise.all([query, supabase.from('v_barang_keluar').select('*')]);
     if (txRes.error) {
       throw new Error(formatSupabaseError(txRes.error, 'Gagal memuat laporan penjualan.'));
     }
