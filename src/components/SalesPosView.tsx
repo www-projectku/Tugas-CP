@@ -93,7 +93,7 @@ export const SalesPosView: React.FC<SalesPosViewProps> = ({
       const existing = prev.find((item) => item.product.id === product.id);
       if (existing) {
         if (existing.quantity >= product.current_stock) {
-          setErrorMsg(`Jumlah keranjang mencapai stok maksimal yang tersedia (${product.current_stock} ${product.unit}).`);
+          setErrorMsg(`Jumlah keranjang mencapai stok maksimal yang tersedia (${formatStock(product.current_stock, product.unit)}).`);
           return prev;
         }
         return prev.map((item) =>
@@ -112,7 +112,7 @@ export const SalesPosView: React.FC<SalesPosViewProps> = ({
           if (item.product.id === productId) {
             const nextQty = item.quantity + delta;
             if (nextQty > item.product.current_stock) {
-              setErrorMsg(`Stok tidak mencukupi. Maksimal ${item.product.current_stock} ${item.product.unit}.`);
+              setErrorMsg(`Stok tidak mencukupi. Maksimal ${formatStock(item.product.current_stock, item.product.unit)}.`);
               return item;
             }
             return { ...item, quantity: nextQty };
@@ -694,7 +694,7 @@ export const SalesPosView: React.FC<SalesPosViewProps> = ({
                   <div key={it.id}>
                     <div className="font-bold text-slate-900">{it.product_name}</div>
                     <div className="flex justify-between text-[11px] text-slate-600">
-                      <span>{it.quantity} {it.unit} x {formatRupiah(it.selling_price)}</span>
+                      <span>{formatStock(it.quantity, it.unit)} x {formatRupiah(it.selling_price)}</span>
                       <span className="font-bold text-slate-900">{formatRupiah(it.subtotal)}</span>
                     </div>
                   </div>
