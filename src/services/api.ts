@@ -306,7 +306,7 @@ async function fetchAllFromSupabase() {
     supabase.from('sales_transactions').select('*').order('created_at', { ascending: false }),
     supabase.from('v_barang_keluar').select('*'),
     supabase.from('v_pergerakan_stok').select('*').order('created_at', { ascending: false }),
-    supabase.from('stock_adjustments').select('*').order('created_at', { ascending: false }),
+    supabase.from('v_stok_opname').select('*').order('created_at', { ascending: false }),
     supabase.from('store_settings').select('*').limit(1),
   ]);
 
@@ -1626,7 +1626,7 @@ export const api = {
 
   getStockAdjustments: async () => {
     const { data, error } = await supabase
-      .from('stock_adjustments')
+      .from('v_stok_opname')
       .select('*')
       .order('created_at', { ascending: false });
 
