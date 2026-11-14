@@ -305,7 +305,7 @@ async function fetchAllFromSupabase() {
     supabase.from('v_barang_masuk').select('*'),
     supabase.from('sales_transactions').select('*').order('created_at', { ascending: false }),
     supabase.from('v_barang_keluar').select('*'),
-    supabase.from('stock_movements').select('*').order('created_at', { ascending: false }),
+    supabase.from('v_pergerakan_stok').select('*').order('created_at', { ascending: false }),
     supabase.from('stock_adjustments').select('*').order('created_at', { ascending: false }),
     supabase.from('store_settings').select('*').limit(1),
   ]);
@@ -1592,7 +1592,7 @@ export const api = {
     end_date?: string;
   }) => {
     let query = supabase
-      .from('stock_movements')
+      .from('v_pergerakan_stok')
       .select('*')
       .order('created_at', { ascending: false });
 
