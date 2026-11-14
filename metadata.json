@@ -1,0 +1,6 @@
+{
+  "name": "DB Inspector & Web Analyzer - Tugas-CP",
+  "description": "Analisis arsitektur dan identifikasi struktur database komprehensif untuk website Tugas-CP (Company Profile di GitHub Pages). Dilengkapi visual ERD, skema SQL/NoSQL, generator DDL, kamus data, dan simulasi query.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
