@@ -124,6 +124,20 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ categories, settings, 
     }
   };
 
+  const stockStatusCounts = {
+    aman: reportData?.items?.filter((item: any) => item.status === 'AMAN').length || 0,
+    menipis: reportData?.items?.filter((item: any) => item.status === 'MENIPIS').length || 0,
+    habis: reportData?.items?.filter((item: any) => item.status === 'HABIS').length || 0,
+  };
+  const totalStatusItems = stockStatusCounts.aman + stockStatusCounts.menipis + stockStatusCounts.habis;
+  const amanEnd = totalStatusItems ? (stockStatusCounts.aman / totalStatusItems) * 100 : 0;
+  const menipisEnd = totalStatusItems
+    ? amanEnd + (stockStatusCounts.menipis / totalStatusItems) * 100
+    : 0;
+  const stockChartBackground = totalStatusItems
+    ? `conic-gradient(#10b981 0% ${amanEnd}%, #f59e0b ${amanEnd}% ${menipisEnd}%, #ef4444 ${menipisEnd}% 100%)`
+    : '#e2e8f0';
+
   return (
     <div className="space-y-6 max-w-7xl">
       {/* Header */}
@@ -374,6 +388,54 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ categories, settings, 
               </>
             )}
           </div>
+
+          {/* Grafik komposisi stok khusus Admin */}
+          {user?.role === 'admin' && selectedReport === 'current-stock' && (
+            <section className="bg-white rounded-lg border border-slate-200/90 shadow-2xs p-5">
+              <div className="mb-5">
+                <h3 className="text-sm font-bold text-slate-900">Komposisi Status Persediaan</h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  Distribusi jumlah SKU berdasarkan kondisi stok saat ini.
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-10">
+                <div
+                  className="relative w-48 h-48 rounded-full shrink-0"
+                  style={{ background: stockChartBackground }}
+                  role="img"
+                  aria-label={`Grafik status persediaan: ${stockStatusCounts.aman} aman, ${stockStatusCounts.menipis} menipis, ${stockStatusCounts.habis} habis`}
+                >
+                  <div className="absolute inset-7 rounded-full bg-white flex flex-col items-center justify-center">
+                    <span className="text-3xl font-bold text-slate-900">{totalStatusItems}</span>
+                    <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Total SKU</span>
+                  </div>
+                </div>
+
+                <div className="w-full max-w-sm space-y-4">
+                  {[
+                    { label: 'Aman', count: stockStatusCounts.aman, color: 'bg-emerald-500', percentage: totalStatusItems ? (stockStatusCounts.aman / totalStatusItems) * 100 : 0 },
+                    { label: 'Menipis', count: stockStatusCounts.menipis, color: 'bg-amber-500', percentage: totalStatusItems ? (stockStatusCounts.menipis / totalStatusItems) * 100 : 0 },
+                    { label: 'Habis', count: stockStatusCounts.habis, color: 'bg-red-500', percentage: totalStatusItems ? (stockStatusCounts.habis / totalStatusItems) * 100 : 0 },
+                  ].map((item) => (
+                    <div key={item.label} className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-2.5">
+                        <span className={`w-3 h-3 rounded-full ${item.color}`} />
+                        <span className="text-sm font-medium text-slate-700">{item.label}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-sm font-bold text-slate-900">{item.count} item</span>
+                        <span className="block text-xs text-slate-500">{item.percentage.toFixed(1)}%</span>
+                      </div>
+                    </div>
+                  ))}
+                  {totalStatusItems === 0 && (
+                    <p className="text-xs text-slate-500">Belum ada data persediaan untuk ditampilkan.</p>
+                  )}
+                </div>
+              </div>
+            </section>
+          )}
 
           {/* Table Container */}
           <div className="bg-white rounded-lg border border-slate-200/90 shadow-2xs overflow-hidden">
