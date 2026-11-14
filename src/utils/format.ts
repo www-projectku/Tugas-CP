@@ -34,10 +34,11 @@ export function formatDateTimeIndo(isoStr: string): string {
 }
 
 export function formatStock(qty: number, unit?: string): string {
-  if (qty === null || qty === undefined || isNaN(qty)) return '0';
-  // If decimal, show up to 2 decimal places, otherwise integer
-  const formatted = Number.isInteger(qty) ? qty.toString() : qty.toFixed(2).replace(/\.?0+$/, '');
-  return unit ? `${formatted} ${unit}` : formatted;
+  if (qty === null || qty === undefined || !Number.isFinite(qty)) return '0';
+  const formatted = new Intl.NumberFormat('id-ID', {
+    maximumFractionDigits: 3,
+  }).format(qty);
+  return unit ? formatted + ' ' + unit : formatted;
 }
 
 export function exportToCsv(filename: string, headers: string[], rows: (string | number)[][]): void {
