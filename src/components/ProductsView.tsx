@@ -458,7 +458,7 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
                         </span>
                       </td>
                       <td className="py-2.5 px-3 text-right font-mono text-slate-500 tabular-nums">
-                        {p.min_stock} {p.unit}
+                        {formatStock(p.min_stock, p.unit)}
                       </td>
                       <td className="py-2.5 px-4 text-center whitespace-nowrap">
                         {!p.is_active ? (
@@ -985,13 +985,13 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
                             </span>
                           </td>
                           <td className="py-2 px-2 text-right font-mono text-blue-700">
-                            {m.quantity_in > 0 ? `+${m.quantity_in}` : '-'}
+                            {m.quantity_in > 0 ? `+${formatStock(m.quantity_in)}` : '-'}
                           </td>
                           <td className="py-2 px-2 text-right font-mono text-red-600">
-                            {m.quantity_out > 0 ? `-${m.quantity_out}` : '-'}
+                            {m.quantity_out > 0 ? `-${formatStock(m.quantity_out)}` : '-'}
                           </td>
                           <td className="py-2 px-2 text-right font-mono font-bold text-slate-900">
-                            {m.balance_after}
+                            {formatStock(m.balance_after, viewingProduct.unit)}
                           </td>
                           <td className="py-2 px-3 text-[11px] text-slate-600 truncate max-w-[120px]">
                             {m.user_name}
