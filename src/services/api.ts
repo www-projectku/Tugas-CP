@@ -641,7 +641,7 @@ export const api = {
     const [prodRes, movRes, catRes] = await Promise.all([
       supabase.from('products').select('*').eq('id', id).single(),
       supabase
-        .from('stock_movements')
+        .from('v_pergerakan_stok')
         .select('*')
         .eq('product_id', id)
         .order('created_at', { ascending: false }),
