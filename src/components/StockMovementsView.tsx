@@ -161,11 +161,11 @@ export const StockMovementsView: React.FC<StockMovementsViewProps> = ({
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
           <span className="text-[10px] uppercase font-bold text-slate-400">Akumulasi Masuk</span>
-          <p className="font-mono text-xl font-bold text-blue-700 mt-0.5">+{totalIn.toFixed(1)} unit</p>
+          <p className="font-mono text-xl font-bold text-blue-700 mt-0.5">+{formatStock(totalIn)} unit</p>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
           <span className="text-[10px] uppercase font-bold text-slate-400">Akumulasi Keluar (Terjual/Opname)</span>
-          <p className="font-mono text-xl font-bold text-red-600 mt-0.5">-{totalOut.toFixed(1)} unit</p>
+          <p className="font-mono text-xl font-bold text-red-600 mt-0.5">-{formatStock(totalOut)} unit</p>
         </div>
       </div>
 
@@ -278,16 +278,16 @@ export const StockMovementsView: React.FC<StockMovementsViewProps> = ({
                       {getMovementBadge(m)}
                     </td>
                     <td className="py-2.5 px-2 text-right font-mono font-bold text-blue-700">
-                      {m.quantity_in > 0 ? `+${m.quantity_in}` : '-'}
+                      {m.quantity_in > 0 ? `+${formatStock(m.quantity_in)}` : '-'}
                     </td>
                     <td className="py-2.5 px-2 text-right font-mono font-bold text-red-600">
-                      {m.quantity_out > 0 ? `-${m.quantity_out}` : '-'}
+                      {m.quantity_out > 0 ? `-${formatStock(m.quantity_out)}` : '-'}
                     </td>
                     <td className="py-2.5 px-2 text-right font-mono text-slate-400">
-                      {m.balance_before}
+                      {formatStock(m.balance_before)}
                     </td>
                     <td className="py-2.5 px-2 text-right font-mono font-bold text-slate-900 bg-slate-50/50">
-                      {m.balance_after}
+                      {formatStock(m.balance_after)}
                     </td>
                     <td className="py-2.5 px-3 font-mono text-slate-600 text-[11px] whitespace-nowrap">
                       {m.reference_number}
