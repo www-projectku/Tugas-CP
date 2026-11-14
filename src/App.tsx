@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { api, setStoredToken, clearStoredToken } from './services/api.js';
+import { api, setStoredToken, getStoredToken, getStoredUser, clearStoredToken } from './services/api.js';
 import { supabase } from './lib/supabaseClient.js';
 import {
   User,
@@ -53,24 +53,33 @@ export default function App() {
   const [settings, setSettings] = useState<StoreSettings | null>(null);
   const [bootstrapError, setBootstrapError] = useState<string | null>(null);
 
-  // 1. Restore and validate the Supabase Auth session and user profile.
+  // 1. Initial State: Restore active session if stored, else show login
   useEffect(() => {
-    let cancelled = false;
-    api.getCurrentUser()
-      .then((res) => {
-        if (!cancelled) setCurrentUser(res?.user || null);
-      })
-      .catch((error) => {
-        console.error('Gagal memverifikasi sesi Supabase:', error);
-        if (!cancelled) setCurrentUser(null);
-      })
-      .finally(() => {
-        if (!cancelled) setAuthChecked(true);
-      });
+    const token = getStoredToken();
+    const cachedUser = getStoredUser();
 
-    return () => {
-      cancelled = true;
-    };
+    if (token && cachedUser) {
+      api.getCurrentUser()
+        .then((res) => {
+          if (res?.user) {
+            setCurrentUser(res.user);
+          } else {
+            clearStoredToken();
+            setCurrentUser(null);
+          }
+        })
+        .catch(() => {
+          // If offline / local dev
+          setCurrentUser(cachedUser);
+        })
+        .finally(() => {
+          setAuthChecked(true);
+        });
+    } else {
+      clearStoredToken();
+      setCurrentUser(null);
+      setAuthChecked(true);
+    }
   }, []);
 
   const lastSyncRef = useRef<number>(0);
