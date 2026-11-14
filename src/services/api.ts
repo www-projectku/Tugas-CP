@@ -347,8 +347,7 @@ async function fetchAllFromSupabase() {
       current_stock: Number(row.current_stock || 0),
       min_stock: Number(row.min_stock || 0),
       is_active: row.is_active !== false,
-      category_name: catNameMap.get(row.category_id) || 'Umum',
-    };
+      category_name: catNameMap.get(row.category_id) || 'Umum',    };
     p.stock_status = computeStockStatus(p);
     catCountMap.set(p.category_id, (catCountMap.get(p.category_id) || 0) + 1);
     return p;
@@ -697,8 +696,7 @@ export const api = {
       purchase_price: Number(data.purchase_price) || 0,
       selling_price: Number(data.selling_price) || 0,
       current_stock: initialStock,
-      min_stock: Number(data.min_stock) || 0,
-      description: data.description || '',
+      min_stock: Number(data.min_stock) || 0,      description: data.description || '',
       is_active: true,
       created_at: now,
       updated_at: now,
@@ -889,6 +887,27 @@ export const api = {
   },
 
   deleteCategory: async (id: string) => {
+    // Periksa langsung ke Supabase agar kategori yang masih digunakan tidak terhapus.
+    const { count, error: checkError } = await supabase
+      .from('products')
+      .select('id', { count: 'exact', head: true })
+      .eq('category_id', id);
+
+    if (checkError) {
+      throw new Error(formatSupabaseError(checkError, 'Gagal memeriksa penggunaan kategori di Supabase.'));
+    }
+
+    // Jika jumlah tidak dapat dipastikan, batalkan penghapusan demi keamanan data.
+    if (count === null) {
+      throw new Error('Jumlah produk pada kategori tidak dapat diverifikasi. Kategori tidak dihapus demi keamanan data.');
+    }
+
+    if (count > 0) {
+      throw new Error(
+        `Kategori tidak dapat dihapus karena masih digunakan oleh ${count} produk. Pindahkan produk ke kategori lain terlebih dahulu.`
+      );
+    }
+
     const { error } = await supabase.from('categories').delete().eq('id', id);
     if (error) {
       throw new Error(formatSupabaseError(error, 'Gagal menghapus kategori dari Supabase.'));
@@ -1047,8 +1066,7 @@ export const api = {
     const user = getStoredUser();
     const now = new Date().toISOString();
     const txId = `sin-${Date.now()}`;
-    const dateStr = payload.transaction_date.replace(/-/g, '');
-    const txNum = `TRX-IN-${dateStr}-${String(Math.floor(Math.random() * 900) + 100)}`;
+    const dateStr = payload.transaction_date.replace(/-/g, '');    const txNum = `TRX-IN-${dateStr}-${String(Math.floor(Math.random() * 900) + 100)}`;
 
     // Resolve supplier name (Supabase first, fallback to clientDb list)
     const { data: supRow } = await supabase
@@ -1397,8 +1415,7 @@ export const api = {
 
     const prodMap = new Map<string, any>(prodRows.map((p: any) => [p.id, p]));
     let totalAmount = 0;
-    const detailsToInsert: any[] = [];
-    const movementsToInsert: any[] = [];
+    const detailsToInsert: any[] = [];    const movementsToInsert: any[] = [];
     const updates: { id: string; current_stock: number }[] = [];
 
     for (const it of payload.items || []) {
@@ -1797,8 +1814,7 @@ export const api = {
       throw new Error(formatSupabaseError(txRes.error, 'Gagal memuat laporan barang masuk.'));
     }
 
-    const supMap = new Map<string, string>((supRes.data || []).map((s: any) => [s.id, s.name]));
-    const detMap = new Map<string, any[]>();
+    const supMap = new Map<string, string>((supRes.data || []).map((s: any) => [s.id, s.name]));    const detMap = new Map<string, any[]>();
     for (const d of detRes.data || []) {
       const arr = detMap.get(d.stock_in_id) || [];
       arr.push(d);
@@ -2197,8 +2213,7 @@ export const api = {
         { onConflict: 'id' }
       );
       if (error) {
-        throw new Error(formatSupabaseError(error, 'Gagal menyinkronkan tabel suppliers ke Supabase.'));
-      }
+        throw new Error(formatSupabaseError(error, 'Gagal menyinkronkan tabel suppliers ke Supabase.'));      }
       actions.push('pemasok awal');
     }
 
