@@ -29,7 +29,7 @@ export const StockOutView: React.FC<StockOutViewProps> = ({ products, onCreateSt
     if (!selected) return setError('Pilih barang terlebih dahulu.');
     const qty = Number(quantity);
     if (!Number.isFinite(qty) || qty <= 0) return setError('Jumlah harus lebih dari 0.');
-    if (qty > selected.current_stock) return setError(`Jumlah melebihi stok tersedia (${selected.current_stock} ${selected.unit}).`);
+    if (qty > selected.current_stock) return setError(`Jumlah melebihi stok tersedia (${formatStock(selected.current_stock, selected.unit)}).`);
     setSaving(true);
     try {
       const result = await onCreateStockOut({ product_id: productId, quantity: qty, reason, notes: notes.trim(), transaction_date: date });
