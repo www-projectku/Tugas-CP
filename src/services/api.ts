@@ -298,7 +298,7 @@ async function fetchAllFromSupabase() {
     adjustmentsRes,
     settingsRes,
   ] = await Promise.all([
-    supabase.from('products').select('*').order('name'),
+    supabase.from('v_barang').select('*').order('name'),
     supabase.from('categories').select('*').order('name'),
     supabase.from('suppliers').select('*').order('name'),
     supabase.from('stock_in_transactions').select('*').order('created_at', { ascending: false }),
