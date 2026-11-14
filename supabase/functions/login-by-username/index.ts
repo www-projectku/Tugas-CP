@@ -33,7 +33,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const body = await req.json();
-    const username = typeof body.username === "string" ? body.username.trim() : "";
+    const username = typeof body.username === "string" ? body.username.trim().toLowerCase() : "";
     const password = typeof body.password === "string" ? body.password : "";
 
     if (!username || !password || username.length > 100 || password.length > 256) {
