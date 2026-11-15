@@ -19,7 +19,6 @@ import {
 const TOKEN_KEY = 'sembako_auth_token';
 const USER_KEY = 'sembako_auth_user';
 const LOGO_KEY = 'sembako_store_logo_url';
-const EXTRA_USERS_KEY = 'sembako_users_registry_v1';
 
 export function getStoredToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
@@ -67,31 +66,6 @@ function setStoredLogo(logoUrl?: string): void {
     } else {
       localStorage.removeItem(LOGO_KEY);
     }
-  } catch {}
-}
-
-type StoredUserRecord = User & { password?: string; created_at?: string };
-
-function loadUserRegistry(): StoredUserRecord[] {
-  try {
-    const raw = localStorage.getItem(EXTRA_USERS_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-    }
-  } catch {}
-  const seeded = clientDb.getData().users.map((u) => ({
-    ...u,
-    password: u.username.toLowerCase() === 'admin' ? 'admin123' : 'kasir123',
-    created_at: new Date().toISOString(),
-  }));
-  saveUserRegistry(seeded);
-  return seeded;
-}
-
-function saveUserRegistry(users: StoredUserRecord[]): void {
-  try {
-    localStorage.setItem(EXTRA_USERS_KEY, JSON.stringify(users));
   } catch {}
 }
 
@@ -454,6 +428,14 @@ async function fetchAllFromSupabase() {
   };
 }
 
+async function invokeAdminUserManagement(body: Record<string, unknown>) {
+  const { data, error } = await supabase.functions.invoke('admin-user-management', { body });
+  if (error || data?.error) {
+    throw new Error(data?.error || error?.message || 'Gagal mengelola pengguna di Supabase.');
+  }
+  return data;
+}
+
 export const api = {
   // ----------------------------------------------------
   // UNIFIED BOOTSTRAP (Direct Supabase Parallel Fetch)
@@ -480,97 +462,95 @@ export const api = {
   // AUTHENTICATION
   // ----------------------------------------------------
   login: async (credentials: { username: string; password: string }) => {
-    const input = credentials.username.trim();
+    const username = credentials.username.trim().toLowerCase();
     const password = credentials.password;
 
-    if (input.includes('@')) {
-      const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({
-        email: input,
-        password,
-      });
-      if (!authErr && authData?.user) {
-        const metaRole = authData.user.user_metadata?.role;
-        const user: User = {
-          id: authData.user.id,
-          username: authData.user.email?.split('@')[0] || input,
-          name: authData.user.user_metadata?.name || authData.user.email || 'Pengguna Supabase',
-          email: authData.user.email || input,
-          role: metaRole === 'petugas' ? 'petugas' : 'admin',
-          is_active: true,
-        };
-        const token = authData.session?.access_token || `sb_${user.id}_${Date.now()}`;
-        setStoredToken(token);
-        setStoredUser(user);
-        return { success: true, token, user, message: 'Login berhasil.' };
-      }
+    if (!username || !password) {
+      throw new Error('Username dan kata sandi wajib diisi.');
     }
 
-    const users = loadUserRegistry();
-    const found = users.find(
-      (u) =>
-        u.username.toLowerCase() === input.toLowerCase() ||
-        u.email.toLowerCase() === input.toLowerCase()
-    );
+    const { data, error } = await supabase.functions.invoke('login-by-username', {
+      body: { username, password },
+    });
 
-    if (!found) {
-      throw new Error('Username atau kata sandi tidak sesuai.');
+    if (error || data?.error || !data?.session || !data?.profile) {
+      throw new Error(data?.error || error?.message || 'Username atau kata sandi tidak sesuai.');
     }
-    if (!found.is_active) {
+
+    const { error: sessionError } = await supabase.auth.setSession({
+      access_token: data.session.access_token,
+      refresh_token: data.session.refresh_token,
+    });
+    if (sessionError) {
+      throw new Error('Login berhasil diverifikasi, tetapi sesi tidak dapat disimpan. Silakan coba lagi.');
+    }
+
+    const profile = data.profile;
+    const user: User = {
+      id: profile.id,
+      username: profile.username,
+      name: profile.name,
+      email: profile.email || '',
+      role: profile.role === 'petugas' ? 'petugas' : 'admin',
+      is_active: profile.is_active === true,
+    };
+
+    if (!user.is_active) {
+      await supabase.auth.signOut();
       throw new Error('Akun pengguna ini sedang dinonaktifkan oleh Administrator.');
     }
 
-    const expectedPassword =
-      found.password || (found.username.toLowerCase() === 'admin' ? 'admin123' : 'kasir123');
-    if (password !== expectedPassword) {
-      throw new Error('Username atau kata sandi tidak sesuai.');
-    }
-
-    const cleanUser: User = {
-      id: found.id,
-      username: found.username,
-      name: found.name,
-      email: found.email,
-      role: found.role,
-      is_active: found.is_active,
-    };
-    const token = `tok_${cleanUser.role}_${cleanUser.id}_${Date.now()}`;
+    const token = data.session.access_token as string;
     setStoredToken(token);
-    setStoredUser(cleanUser);
-    return { success: true, token, user: cleanUser, message: 'Login berhasil.' };
+    setStoredUser(user);
+    return { success: true, token, user, message: 'Login berhasil.' };
   },
 
   getCurrentUser: async () => {
-    const cached = getStoredUser();
-    const token = getStoredToken();
-    if (cached && token) {
-      return { success: true, user: cached };
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError || !authData?.user) {
+      clearStoredToken();
+      return { success: false, user: null as unknown as User };
     }
-    const { data } = await supabase.auth.getUser();
-    if (data?.user) {
-      const user: User = {
-        id: data.user.id,
-        username: data.user.email?.split('@')[0] || 'admin',
-        name: data.user.user_metadata?.name || data.user.email || 'Admin',
-        email: data.user.email || '',
-        role: data.user.user_metadata?.role === 'petugas' ? 'petugas' : 'admin',
-        is_active: true,
-      };
-      setStoredUser(user);
-      return { success: true, user };
+
+    const { data: profile, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('id, username, full_name, role, is_active')
+      .eq('id', authData.user.id)
+      .maybeSingle();
+
+    if (profileError) {
+      throw new Error(formatSupabaseError(profileError, 'Gagal memverifikasi profil pengguna.'));
     }
-    clearStoredToken();
-    return { success: false, user: null as unknown as User };
+
+    if (!profile || !profile.is_active) {
+      await supabase.auth.signOut();
+      clearStoredToken();
+      return { success: false, user: null as unknown as User };
+    }
+
+    const user: User = {
+      id: profile.id,
+      username: profile.username,
+      name: profile.full_name,
+      email: authData.user.email || '',
+      role: profile.role === 'petugas' ? 'petugas' : 'admin',
+      is_active: profile.is_active,
+    };
+    setStoredToken(authData.session?.access_token || '');
+    setStoredUser(user);
+    return { success: true, user };
   },
 
   logout: async () => {
-    try {
-      await supabase.auth.signOut();
-    } catch {}
+    const { error } = await supabase.auth.signOut();
     clearStoredToken();
+    if (error) {
+      throw new Error('Sesi lokal dibersihkan, tetapi proses logout Supabase mengalami kendala.');
+    }
     return { success: true, message: 'Logout berhasil.' };
   },
 
-  // ----------------------------------------------------
   // DASHBOARD
   // ----------------------------------------------------
   getDashboardSummary: async () => {
@@ -1978,62 +1958,43 @@ export const api = {
   // USERS & SETTINGS
   // ----------------------------------------------------
   getUsers: async () => {
-    const users = loadUserRegistry().map(({ password: _p, ...u }) => u);
-    return { success: true, data: users };
+    const result = await invokeAdminUserManagement({ action: 'list' });
+    return { success: true, data: result.data || [] };
   },
 
   createUser: async (data: any) => {
-    const registry = loadUserRegistry();
-    if (
-      registry.some(
-        (u) =>
-          u.username.toLowerCase() === String(data.username).trim().toLowerCase() ||
-          u.email.toLowerCase() === String(data.email).trim().toLowerCase()
-      )
-    ) {
-      throw new Error('Username atau email sudah digunakan oleh akun lain.');
-    }
-
-    const newUser: StoredUserRecord = {
-      id: `usr-${Date.now()}`,
-      username: String(data.username).trim(),
-      name: String(data.name).trim(),
-      email: String(data.email).trim(),
+    const result = await invokeAdminUserManagement({
+      action: 'create',
+      username: String(data.username || '').trim(),
+      name: String(data.name || '').trim(),
+      email: String(data.email || '').trim(),
+      password: String(data.password || ''),
       role: data.role === 'admin' ? 'admin' : 'petugas',
-      is_active: true,
-      password: data.password || 'kasir123',
-      created_at: new Date().toISOString(),
+    });
+    return {
+      success: true,
+      message: result.message || 'Pengguna berhasil dibuat di Supabase.',
+      data: result.data,
     };
-    registry.push(newUser);
-    saveUserRegistry(registry);
-
-    const { password: _p, ...clean } = newUser;
-    return { success: true, message: 'Pengguna berhasil dibuat.', data: clean as User };
   },
 
   toggleUserStatus: async (id: string) => {
-    const registry = loadUserRegistry();
-    const u = registry.find((user) => user.id === id);
-    if (!u) throw new Error('Pengguna tidak ditemukan.');
-    u.is_active = !u.is_active;
-    saveUserRegistry(registry);
-    return { success: true, message: 'Status pengguna diubah.' };
+    const result = await invokeAdminUserManagement({ action: 'toggle', id });
+    return { success: true, message: result.message || 'Status pengguna berhasil diperbarui.' };
   },
 
   deleteUser: async (id: string) => {
-    const registry = loadUserRegistry();
-    const filtered = registry.filter((user) => user.id !== id);
-    saveUserRegistry(filtered);
-    return { success: true, message: 'Pengguna berhasil dihapus.' };
+    const result = await invokeAdminUserManagement({ action: 'delete', id });
+    return { success: true, message: result.message || 'Pengguna berhasil dihapus.' };
   },
 
   resetPassword: async (id: string, new_password: string) => {
-    const registry = loadUserRegistry();
-    const u = registry.find((user) => user.id === id);
-    if (!u) throw new Error('Pengguna tidak ditemukan.');
-    u.password = new_password;
-    saveUserRegistry(registry);
-    return { success: true, message: 'Password berhasil direset.' };
+    const result = await invokeAdminUserManagement({
+      action: 'reset_password',
+      id,
+      password: new_password,
+    });
+    return { success: true, message: result.message || 'Password berhasil diperbarui.' };
   },
 
   getSettings: async () => {
