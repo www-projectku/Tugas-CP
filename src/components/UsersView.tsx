@@ -353,7 +353,8 @@ export const UsersView: React.FC<UsersViewProps> = ({ currentUser }) => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Minimal 5 karakter"
+                  minLength={6}
+                  placeholder="Minimal 6 karakter"
                   className="w-full py-2 px-3 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-800"
                 />
               </div>
@@ -396,7 +397,8 @@ export const UsersView: React.FC<UsersViewProps> = ({ currentUser }) => {
                   required
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Minimal 5 karakter..."
+                  minLength={6}
+                  placeholder="Minimal 6 karakter..."
                   className="w-full py-2 px-3 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-800"
                 />
               </div>
