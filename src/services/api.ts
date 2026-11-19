@@ -1,4 +1,3 @@
-import { supabase } from '../lib/supabaseClient'
 import { clientDb } from './clientDb.js';
 import {
   User,
@@ -222,32 +221,9 @@ export const api = {
   // ----------------------------------------------------
   
 getProducts: async (params?: { category_id?: string; stock_status?: string; search?: string }) => {
-  let query = supabase
-    .from('products')
-    .select('*', { count: 'exact' })
-    .order('name');
-
-  if (params?.category_id) {
-    query = query.eq('category_id', params.category_id);
-  }
-
-  if (params?.search) {
-    query = query.ilike('name', `%${params.search}%`);
-  }
-
-  const { data, error, count } = await query;
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return {
-    success: true,
-    data: data as Product[],
-    total: count ?? 0,
-  };
-},
-
+    const data = clientDb.getProducts(params);
+    return { success: true, data, total: data.length };
+  },
 
   getProductDetail: async (id: string) => {
     try {
@@ -612,56 +588,37 @@ getProducts: async (params?: { category_id?: string; stock_status?: string; sear
   // REPORTS
   // ----------------------------------------------------
   getCurrentStockReport: async (category_id?: string) => {
-  let query = supabase
-    .from('products')
-    .select('*')
-    .eq('is_active', true)
-    .order('name');
+    const catMap = new Map(clientDb.getData().categories.map((c) => [c.id, c.name]));
+    const products = clientDb.getProducts({ category_id, stock_status: 'all' })
+      .filter((p) => p.is_active);
+    const items = products.map((p) => ({
+      sku: p.sku,
+      name: p.name,
+      category: catMap.get(p.category_id) || '-',
+      unit: p.unit,
+      current_stock: p.current_stock,
+      min_stock: p.min_stock,
+      purchase_price: p.purchase_price,
+      selling_price: p.selling_price,
+      valuation: p.current_stock * p.purchase_price,
+      potentialRevenue: p.current_stock * p.selling_price,
+      potentialMargin: p.current_stock * (p.selling_price - p.purchase_price),
+      status: p.current_stock <= 0 ? 'HABIS' : p.current_stock <= p.min_stock ? 'MENIPIS' : 'AMAN',
+    }));
 
-  if (category_id && category_id !== 'all') {
-    query = query.eq('category_id', category_id);
-  }
-
-  const { data: prods, error } = await query;
-
-  if (error) throw new Error(error.message);
-
-  const { data: categories, error: categoryError } = await supabase
-    .from('categories')
-    .select('*');
-
-  if (categoryError) throw new Error(categoryError.message);
-
-  const catMap = new Map(categories.map((c) => [c.id, c.name]));
-
-  const items = (prods || []).map((p) => ({
-    sku: p.sku,
-    name: p.name,
-    category: catMap.get(p.category_id) || '-',
-    unit: p.unit,
-    current_stock: p.current_stock,
-    min_stock: p.min_stock,
-    purchase_price: p.purchase_price,
-    selling_price: p.selling_price,
-    valuation: p.current_stock * p.purchase_price,
-    potentialRevenue: p.current_stock * p.selling_price,
-    potentialMargin: p.current_stock * (p.selling_price - p.purchase_price),
-    status: p.current_stock <= 0 ? 'HABIS' : p.current_stock <= p.min_stock ? 'MENIPIS' : 'AMAN',
-  }));
-
-  return {
-    success: true,
-    data: {
-      items,
-      summary: {
-        totalItems: items.length,
-        totalStockUnits: items.reduce((s, i) => s + i.current_stock, 0),
-        totalValuation: items.reduce((s, i) => s + i.valuation, 0),
-        totalPotentialRevenue: items.reduce((s, i) => s + i.potentialRevenue, 0),
+    return {
+      success: true,
+      data: {
+        items,
+        summary: {
+          totalItems: items.length,
+          totalStockUnits: items.reduce((s, i) => s + i.current_stock, 0),
+          totalValuation: items.reduce((s, i) => s + i.valuation, 0),
+          totalPotentialRevenue: items.reduce((s, i) => s + i.potentialRevenue, 0),
+        },
       },
-    },
-  };
-},
+    };
+  },
 
   getStockInReport: async (params?: { start_date?: string; end_date?: string; supplier_id?: string }) => {
     try {
