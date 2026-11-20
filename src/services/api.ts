@@ -159,22 +159,51 @@ export const api = {
       return res;
     } catch (err) {
       if (err instanceof ApiError) throw err;
-      // Fallback for static host
-      const users = clientDb.getData().users;
-      const user = users.find(
+
+      // GitHub Pages uses local demo authentication because no API server is available.
+      const username = credentials.username.trim().toLowerCase();
+      const localUsers = clientDb.getData()?.users;
+      const users = Array.isArray(localUsers) ? localUsers : [];
+      let user = users.find(
         (u) =>
-          u.username.toLowerCase() === credentials.username.toLowerCase() ||
-          u.email.toLowerCase() === credentials.username.toLowerCase()
+          u.username?.toLowerCase() === username ||
+          u.email?.toLowerCase() === username
       );
-      if (!user) throw new Error('Username atau password salah.');
-      // Demo credentials for the static GitHub Pages prototype only.
-      // Client-side authentication is not suitable for protecting sensitive data.
+
+      // Restore demo accounts when an older browser cache has no users array.
+      if (!user && (username === 'admin' || username === 'kasir')) {
+        user = username === 'admin'
+          ? {
+              id: 'usr-1',
+              username: 'admin',
+              name: 'H. Sudirman (Pemilik Toko)',
+              email: 'admin@toko-sembako.com',
+              role: 'admin',
+              is_active: true,
+            }
+          : {
+              id: 'usr-2',
+              username: 'kasir',
+              name: 'Siti Rahma (Petugas Kasir/Gudang)',
+              email: 'kasir@toko-sembako.com',
+              role: 'petugas',
+              is_active: true,
+            };
+      }
+
+      if (!user || user.is_active === false) {
+        throw new Error('Akun tidak ditemukan atau sudah dinonaktifkan.');
+      }
+
       const expectedPassword = user.username.toLowerCase() === 'admin' ? 'admin123' : 'kasir123';
-      if (credentials.password !== expectedPassword) throw new Error('Username atau password salah.');
+      if (credentials.password !== expectedPassword) {
+        throw new Error('Username atau password salah. Periksa kembali akun demo yang digunakan.');
+      }
+
       const token = `tok_${user.role}_${user.id}_static_${Date.now()}`;
       setStoredToken(token);
       setStoredUser(user);
-      return { success: true, token, user, message: 'Login berhasil.' };
+      return { success: true, token, user, message: 'Login mode demo berhasil.' };
     }
   },
 
