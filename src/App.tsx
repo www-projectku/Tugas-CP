@@ -108,8 +108,8 @@ export default function App() {
              });
           }
         console.log('JUMLAH PRODUK LOKAL:', localProducts.total);
-        console.log('DATA PRODUK LOKAL:', productsFromSupabase.data);
-        setProducts(productsFromSupabase.data);
+        console.log('DATA PRODUK LOKAL:', localProducts.data);
+        setProducts(localProducts.data);
         if (categories) setCategories(categories);
         if (suppliers) setSuppliers(suppliers);
         if (stockInList) setStockInList(stockInList);
