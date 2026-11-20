@@ -99,16 +99,16 @@ export default function App() {
           settings,
         } = res.data;
 
-        const productsFromSupabase = await api.getProducts();
+        const localProducts = await api.getProducts();
 
         if (dashboard) {
            setDashboardData({
            ...dashboard,
-             totalProducts: productsFromSupabase.data.filter((p) => p.is_active).length,
+             totalProducts: localProducts.data.filter((p) => p.is_active).length,
              });
           }
-        console.log('JUMLAH PRODUK DARI SUPABASE:', productsFromSupabase.total);
-        console.log('DATA PRODUK:', productsFromSupabase.data);
+        console.log('JUMLAH PRODUK LOKAL:', localProducts.total);
+        console.log('DATA PRODUK LOKAL:', productsFromSupabase.data);
         setProducts(productsFromSupabase.data);
         if (categories) setCategories(categories);
         if (suppliers) setSuppliers(suppliers);
